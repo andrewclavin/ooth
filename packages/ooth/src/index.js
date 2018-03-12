@@ -18,7 +18,7 @@ function requireLogged(req, res, next) {
         return res.status(400).send({
             status: 'error',
             message: 'Not logged in'
-        })        
+        })
     }
     next()
 }
@@ -80,11 +80,11 @@ function authenticate(passport, methodName, req, res) {
             if (err) {
                 reject(err)
             }
-            
+
             if (!user) {
                 reject(new Error(info && info.message || 'Unknown error.'))
             }
-            
+
             resolve(user)
         })
         auth(req, res)
@@ -140,8 +140,8 @@ class Ooth {
         app.use(bodyParser.json())
         app.use(passport.initialize())
         app.use(passport.session())
-        expressWs(app)
-
+        const ws = expressWs(app)
+        ws.applyTo(app)
         app.use(this.path, this.route)
 
         passport.serializeUser((user, done) => {
@@ -158,7 +158,7 @@ class Ooth {
                 done(null, false)
             }
         })
-        
+
         this.route.all('/', (req, res) => {
             const methods = {}
             Object.keys(this.strategies).forEach(name => {
@@ -309,7 +309,7 @@ class Ooth {
             },
             registerMethod: (method, ...handlers) => {
                 this.strategies[name].methods.push(method)
-                
+
                 // Split handlers into [...middleware, handler]
                 const middleware = handlers.slice(0, -1)
                 const handler = handlers[handlers.length-1]
@@ -520,19 +520,19 @@ class Ooth {
                     registered = true
                 }
             }
-            
+
             let loggedIn = false
             if (!req.user) {
                 await login(req, user)
                 loggedIn = true
             }
-            
+
             const profile = this.getProfile(user)
-            
+
             this.sendStatus(req, {
                 user: profile
             })
-            
+
             if (loggedIn && this.onLogin) {
                 this.onLogin(profile)
             }
